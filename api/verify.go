@@ -78,17 +78,17 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Determine overall validity
-	// We consider it valid if it has MX records, syntax is correct, and it's not disposable
-	isValid := res.Syntax.Valid && res.HasMXRecords && !res.Disposable
+	// We consider it valid if it has Mx records, syntax is correct, and it's not disposable
+	isValid := res.Syntax.Valid && res.HasMxRecords && !res.Disposable
 
 	response := VerificationResponse{
 		Email:         email,
 		IsValid:       isValid,
-		Status:        getFriendlyStatus(isValid, res.Disposable, res.HasMXRecords),
+		Status:        getFriendlyStatus(isValid, res.Disposable, res.HasMxRecords),
 		Disposable:    res.Disposable,
 		RoleAccount:    res.RoleAccount,
-		HasMxRecords:  res.HasMXRecords,
-		Suggestion:    verifier.SuggestDomain(res.Syntax.Domain),
+		HasMxRecords:  res.HasMxRecords,
+		Suggestion:    res.Suggestion,
 		SyntaxValid:   res.Syntax.Valid,
 		GravatarFound: gravatarFound,
 	}

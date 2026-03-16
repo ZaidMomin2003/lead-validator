@@ -1,6 +1,6 @@
 module validation-engine
 
-go 1.25.6
+go 1.22
 
 require (
 	github.com/AfterShip/email-verifier v1.4.1 // indirect
