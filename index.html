@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validator Engine Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #FFD700;
+            --black: #000;
+            --white: #fff;
+            --gray: #f4f4f4;
+            --border: 3px solid #000;
+            --shadow: 6px 6px 0 #000;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gray);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .badge {
+            background: var(--gold);
+            padding: 4px 12px;
+            border: 2px solid #000;
+            font-weight: 800;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        .card {
+            background: var(--white);
+            border: var(--border);
+            padding: 32px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 800;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px;
+            border: 3px solid #000;
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: 700;
+            box-sizing: border-box;
+            transition: transform 0.1s;
+        }
+
+        input:focus {
+            outline: none;
+            background: #fffdf0;
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        button {
+            width: 100%;
+            background: var(--black);
+            color: var(--white);
+            padding: 18px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 900;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 8px 8px 0 var(--gold);
+        }
+
+        .result-area {
+            display: none;
+            margin-top: 24px;
+        }
+
+        pre {
+            background: #111;
+            color: #2ecc71;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            border: 2px solid #333;
+        }
+
+        .status-msg {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 800;
+        }
+
+        .status-msg.valid { background: #d4edda; color: #155724; border: 2px solid #c3e6cb; }
+        .status-msg.invalid { background: #f8d7da; color: #721c24; border: 2px solid #f5c6cb; }
+
+        .loader {
+            display: none;
+            text-align: center;
+            font-weight: 800;
+            margin: 20px 0;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Engine Dash</h1>
+            <div class="badge">Vercel Backend Ready</div>
+        </header>
+
+        <div class="card">
+            <div class="form-group">
+                <label>API Key</label>
+                <input type="password" id="apiKey" placeholder="Enter your Master API Key" value="">
+            </div>
+
+            <div class="form-group">
+                <label>Test Email</label>
+                <input type="email" id="emailInput" placeholder="hello@domain.com">
+            </div>
+
+            <button onclick="testVerification()">Verify Email Now</button>
+
+            <div class="loader" id="loader">Running Smart Analysis...</div>
+
+            <div class="result-area" id="resultArea">
+                <div id="statusBadge" class="status-msg"></div>
+                <pre id="jsonResult"></pre>
+            </div>
+        </div>
+
+        <p style="text-align:center; font-size: 0.8rem; opacity: 0.5; font-weight: 700;">
+            Connected to <code>github.com/AfterShip/email-verifier</code>
+        </p>
+    </div>
+
+    <script>
+        // Load API key from localStorage if it exists
+        document.getElementById('apiKey').value = localStorage.getItem('master_api_key') || '';
+
+        async function testVerification() {
+            const email = document.getElementById('emailInput').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const loader = document.getElementById('loader');
+            const resultArea = document.getElementById('resultArea');
+            const statusBadge = document.getElementById('statusBadge');
+            const jsonResult = document.getElementById('jsonResult');
+
+            if (!email) return alert('Please enter an email');
+            
+            // Save key
+            localStorage.setItem('master_api_key', apiKey);
+
+            loader.style.display = 'block';
+            resultArea.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-KEY': apiKey
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+                
+                loader.style.display = 'none';
+                resultArea.style.display = 'block';
+
+                statusBadge.className = `status-msg ${data.is_valid ? 'valid' : 'invalid'}`;
+                statusBadge.innerText = `${data.is_valid ? '✓' : '✗'} Status: ${data.status}`;
+                
+                jsonResult.innerText = JSON.stringify(data, null, 2);
+
+            } catch (err) {
+                loader.style.display = 'none';
+                alert('Connection failed. Make sure the API is running or your Key is valid.');
+            }
+        }
+    </script>
+</body>
+</html>

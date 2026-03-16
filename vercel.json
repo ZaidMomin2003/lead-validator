@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "src": "/api/(.*)", "dest": "/api/$1" }
+  ]
+}
